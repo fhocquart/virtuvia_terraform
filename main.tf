@@ -1,8 +1,8 @@
 # Terraform Configuration for AWS Environment
 
 provider "aws" {
-  region = "us-east-1"
-  profile = "default"  # Update this if you use a specific AWS profile
+  region  = "us-east-1"
+  profile = "default" # Update this if you use a specific AWS profile
 }
 
 # Create VPC
@@ -59,10 +59,11 @@ resource "aws_security_group" "app_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-# Route Table Association
+
+# Route Table Association (Dynamically References the Route Table Created Above)
 resource "aws_route_table_association" "app_subnet_route" {
-  subnet_id      = "subnet-020de8437fd5309cd"  # Your existing subnet
-  route_table_id = "rtb-055002fe56872b216"     # Your existing route table
+  subnet_id      = aws_subnet.public_subnet.id # Reference your dynamically created subnet
+  route_table_id = aws_route_table.app_route_table.id # Reference the dynamically created route table
 }
 
 # Fetch the latest Ubuntu AMI dynamically
@@ -82,13 +83,13 @@ data "aws_ami" "ubuntu" {
 }
 
 # Create EC2 Instance
-resource "aws_instance" "app_server" {  # Ensure consistent naming here
-  ami           = data.aws_ami.ubuntu.id  # Use the declared data source
-  instance_type = "t2.micro"
-   subnet_id     = aws_subnet.public_subnet.id
+resource "aws_instance" "app_server" {                 # Ensure consistent naming here
+  ami                         = data.aws_ami.ubuntu.id # Use the declared data source
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.public_subnet.id
   associate_public_ip_address = true
-  key_name      = "femi_keypair"  # Use the new key pair name
-  vpc_security_group_ids = [aws_security_group.app_sg.id]  
+  key_name                    = "femi_keypair" # Use the new key pair name
+  vpc_security_group_ids      = [aws_security_group.app_sg.id]
 
   tags = {
     Name = "App Server"
