@@ -1,3 +1,4 @@
+
 # Terraform Configuration for AWS Environment
 
 provider "aws" {
